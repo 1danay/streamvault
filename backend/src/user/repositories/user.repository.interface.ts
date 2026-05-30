@@ -1,5 +1,5 @@
 import { User } from 'generated/prisma/client';
-import { CreateUserDto } from '../dto/create-user.dto';
+import { CreateUserDto } from '../dto';
 
 export type CreateUserData = Omit<CreateUserDto, 'password'> & {
   passwordHash: string;
