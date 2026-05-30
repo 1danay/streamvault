@@ -1,25 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserData, UsersRepository } from './repositories';
 import { SafeUserData } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto, FindUserByEmailDto, FindUserByIdDto } from './dto';
+import { CreateUserDto } from './dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  public async findByEmail(dto: FindUserByEmailDto) {
-    const user = await this.usersRepository.findByEmail(dto.email);
+  public async findById(id: string): Promise<SafeUserData> {
+    const user = await this.usersRepository.findById(id);
 
-    return user;
+    if (!user) {
+      throw new NotFoundException(`User with ID "${id}" not found`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: passwordHash, ...safeUser } = user;
+    return safeUser;
   }
 
-  public async findById(dto: FindUserByIdDto) {
-    const user = await this.usersRepository.findById(dto.id);
+  public async findByEmail(email: string): Promise<SafeUserData> {
+    const user = await this.usersRepository.findByEmail(email);
 
-    return user;
+    if (!user) {
+      throw new NotFoundException(`User with email "${email}" not found`);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: passwordHash, ...safeUser } = user;
+    return safeUser;
   }
-
   public async createUser(dto: CreateUserDto): Promise<SafeUserData> {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
