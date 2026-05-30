@@ -1,8 +1,46 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+import { ConfigService } from '@nestjs/config';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 4040);
+
+  const config = app.get(ConfigService);
+  const logger = new Logger();
+
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
+
+  app.enableCors({
+    origin: config.getOrThrow<string>('HTTP_CORS').split(','),
+    credentials: true,
+  });
+
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('Streamvault API')
+    .setDescription('Streamvault API methods and structures')
+    .setVersion('1.0.0')
+    .addBearerAuth()
+    .build();
+
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+
+  SwaggerModule.setup('/docs', app, swaggerDocument, {
+    yamlDocumentUrl: '/openapi.yaml',
+  });
+
+  const port = config.getOrThrow<number>('HTTP_PORT');
+  const host = config.getOrThrow<string>('HTTP_HOST');
+
+  await app.listen(port);
+
+  logger.log(`🚀 Gateway started: ${host}`);
+  logger.log(`📚 Swagger: ${host}/docs`);
 }
 bootstrap();
