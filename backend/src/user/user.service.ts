@@ -1,13 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserData, UsersRepository } from './repositories';
-import { SafeUserData } from './entities/user.entity';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto } from './dto';
+import { CreateUserDto, SafeUserData } from './dto';
 
 @Injectable()
 export class UserService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
+  // Endpoints business logic
   public async findById(id: string): Promise<SafeUserData> {
     const user = await this.usersRepository.findById(id);
 
@@ -31,6 +31,12 @@ export class UserService {
     const { password: passwordHash, ...safeUser } = user;
     return safeUser;
   }
+
+  // External functions
+  public async findForAuth(email: string) {
+    return await this.usersRepository.findByEmail(email);
+  }
+
   public async createUser(dto: CreateUserDto): Promise<SafeUserData> {
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);

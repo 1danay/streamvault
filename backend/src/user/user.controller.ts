@@ -1,13 +1,12 @@
 import { Controller, Get, HttpCode, Query } from '@nestjs/common';
 import { UserService } from './user.service';
-import { FindUserByEmailDto, FindUserByIdDto } from './dto';
+import { FindUserByEmailDto, FindUserByIdDto, SafeUserData } from './dto';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { SafeUserData } from './entities';
 
 @ApiBearerAuth()
 @ApiTags('user')
