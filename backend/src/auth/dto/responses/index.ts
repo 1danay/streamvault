@@ -1,1 +1,1 @@
-export * from './login-response.dto';
+export * from './auth-response.dto';

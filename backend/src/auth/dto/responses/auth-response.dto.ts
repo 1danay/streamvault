@@ -16,4 +16,4 @@ class TokensDto {
   public refreshToken: string;
 }
 
-export class LoginResponse extends IntersectionType(SafeUserData, TokensDto) {}
+export class AuthResponse extends IntersectionType(SafeUserData, TokensDto) {}

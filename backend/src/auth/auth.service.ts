@@ -1,10 +1,17 @@
-import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
-import { AuthDto, LoginResponse } from './dto';
+import { AuthDto, AuthResponse } from './dto';
 import * as bcrypt from 'bcrypt';
-import { User } from 'generated/prisma/client';
+import { Prisma } from 'generated/prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { SafeUserData } from 'src/user/dto';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +23,7 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  public async login(dto: AuthDto): Promise<LoginResponse> {
+  public async login(dto: AuthDto): Promise<AuthResponse> {
     const { email, password } = dto;
 
     const existingUser = await this.userService.findForAuth(email);
@@ -30,8 +37,8 @@ export class AuthService {
       existingUser.password,
     );
     if (!isPasswordValid) {
-      this.logger.error('Invalid credentials');
-      throw new UnauthorizedException('Неверный email или пароль');
+      this.logger.error('Неверный email или пароль');
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     // DEV
@@ -50,7 +57,57 @@ export class AuthService {
     };
   }
 
-  async generateTokens(user: User) {
+  public async register(dto: AuthDto): Promise<AuthResponse> {
+    if (!dto.username) {
+      this.logger.error('Username должен быть указан');
+      throw new BadRequestException('Username should be provided');
+    }
+
+    const { email, username, password } = dto;
+
+    const existingUser = await this.userService.findForAuth(email);
+    if (existingUser) {
+      this.logger.error(
+        `Пользователь с таким адресом электронной почты уже существует: ${email}`,
+      );
+      throw new ConflictException('User with this email already exists');
+    }
+
+    let newUser: SafeUserData | null;
+
+    try {
+      newUser = await this.userService.createUser({
+        email,
+        username,
+        password,
+      });
+    } catch (e) {
+      if (
+        // Unique constraint error
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        this.logger.error(
+          `Пользователь с таким username уже существует: ${username}`,
+        );
+        throw new ConflictException('User with this username already exists');
+      }
+      throw e;
+    }
+
+    const { accessToken, refreshToken } = await this.generateTokens(newUser);
+
+    return {
+      accessToken,
+      refreshToken,
+      id: newUser.id,
+      email: newUser.email,
+      username: newUser.username,
+      createdAt: newUser.createdAt,
+    };
+  }
+
+  private async generateTokens(user: SafeUserData) {
     const payload = { sub: user.id, email: user.email };
 
     const [accessToken, refreshToken] = await Promise.all([

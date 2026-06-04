@@ -27,5 +27,7 @@ model Stream {
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
 
+  @@index([userId])
+  @@index([isLive])
   @@map("streams")
 }
