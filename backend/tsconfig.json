@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "resolvePackageJsonExports": true,
+    "module": "CommonJS",
+    "moduleResolution": "node10",
     "esModuleInterop": true,
     "isolatedModules": true,
     "declaration": true,
@@ -15,6 +14,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
+    "strict": false,
     "skipLibCheck": true,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
