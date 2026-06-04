@@ -12,6 +12,7 @@ import { Prisma } from 'generated/prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { SafeUserData } from 'src/user/dto';
+import { Response } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +24,7 @@ export class AuthService {
 
   private readonly logger = new Logger(AuthService.name);
 
-  public async login(dto: AuthDto): Promise<AuthResponse> {
+  public async login(dto: AuthDto, res: Response): Promise<AuthResponse> {
     const { email, password } = dto;
 
     const existingUser = await this.userService.findForAuth(email);
@@ -44,8 +45,10 @@ export class AuthService {
     // DEV
     this.logger.log(`Login successfull. Credentials: ${email}:${password}`);
 
-    const { accessToken, refreshToken } =
-      await this.generateTokens(existingUser);
+    const { accessToken, refreshToken } = await this.generateTokens(
+      existingUser,
+      res,
+    );
 
     return {
       accessToken,
@@ -57,7 +60,7 @@ export class AuthService {
     };
   }
 
-  public async register(dto: AuthDto): Promise<AuthResponse> {
+  public async register(dto: AuthDto, res: Response): Promise<AuthResponse> {
     if (!dto.username) {
       this.logger.error('Username должен быть указан');
       throw new BadRequestException('Username should be provided');
@@ -95,7 +98,10 @@ export class AuthService {
       throw e;
     }
 
-    const { accessToken, refreshToken } = await this.generateTokens(newUser);
+    const { accessToken, refreshToken } = await this.generateTokens(
+      newUser,
+      res,
+    );
 
     return {
       accessToken,
@@ -107,7 +113,7 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(user: SafeUserData) {
+  private async generateTokens(user: SafeUserData, res: Response) {
     const payload = { sub: user.id, email: user.email };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -120,6 +126,21 @@ export class AuthService {
         expiresIn: '7d',
       }),
     ]);
+
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/auth/refresh',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
 
     // DEV
     this.logger.log(

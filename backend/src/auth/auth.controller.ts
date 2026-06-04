@@ -1,8 +1,9 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from 'src/shared/decorators';
 import { AuthDto, AuthResponse } from './dto';
+import { Response } from 'express';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -16,8 +17,11 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(200)
-  public async login(@Body() dto: AuthDto): Promise<AuthResponse> {
-    return await this.authService.login(dto);
+  public async login(
+    @Body() dto: AuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    return await this.authService.login(dto, res);
   }
 
   @ApiOperation({
@@ -27,7 +31,10 @@ export class AuthController {
   @Public()
   @Post('register')
   @HttpCode(201)
-  public async register(@Body() dto: AuthDto): Promise<AuthResponse> {
-    return await this.authService.register(dto);
+  public async register(
+    @Body() dto: AuthDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<AuthResponse> {
+    return await this.authService.register(dto, res);
   }
 }

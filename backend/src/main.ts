@@ -4,6 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor.js';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,6 +18,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  app.use(cookieParser());
 
   app.enableCors({
     origin: config.getOrThrow<string>('HTTP_CORS').split(','),
