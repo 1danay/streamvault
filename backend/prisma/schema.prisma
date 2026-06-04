@@ -14,6 +14,8 @@ model User {
   username  String   @unique
   streams   Stream[]
   createdAt DateTime @default(now())
+
+  @@map("users")
 }
 
 model Stream {
@@ -24,4 +26,6 @@ model Stream {
   userId      String
   user        User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
+
+  @@map("streams")
 }
