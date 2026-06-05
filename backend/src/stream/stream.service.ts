@@ -21,7 +21,7 @@ export class StreamService {
   ): Promise<Stream> {
     const activeStream = await this.streamRepository.findActiveByUser(userId);
 
-    if (activeStream) {
+    if (activeStream.length > 0) {
       this.logger.error(`У вас уже есть активная трансляция, userId=${userId}`);
       throw new BadRequestException('You already have an active live stream');
     }
