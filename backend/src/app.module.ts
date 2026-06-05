@@ -8,6 +8,7 @@ import { AppController } from './app.controller.js';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './shared/guards';
+import { StreamModule } from './stream/stream.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AuthGuard } from './shared/guards';
     UserModule,
     JwtModule.register({ global: true }),
     PrismaModule,
+    StreamModule,
   ],
   providers: [
     PrismaService,

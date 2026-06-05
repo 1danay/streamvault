@@ -19,13 +19,14 @@ model User {
 }
 
 model Stream {
-  id          String   @id @default(uuid())
-  title       String
-  description String?
-  isLive      Boolean  @default(false)
-  userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt   DateTime @default(now())
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  isLive       Boolean  @default(false)
+  thumbnailUrl String?
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
 
   @@index([userId])
   @@index([isLive])
