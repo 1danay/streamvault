@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
+  MaxLength,
   MinLength,
 } from 'class-validator';
 
@@ -21,6 +22,7 @@ export class AuthDto {
   })
   @IsString()
   @IsOptional()
+  @MaxLength(50)
   public username?: string;
 
   @ApiProperty({
