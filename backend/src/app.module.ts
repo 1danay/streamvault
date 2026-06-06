@@ -9,6 +9,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './shared/guards';
 import { StreamModule } from './stream/stream.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { StreamModule } from './stream/stream.module';
     JwtModule.register({ global: true }),
     PrismaModule,
     StreamModule,
+    ChatModule,
   ],
   providers: [
     PrismaService,
