@@ -6,5 +6,6 @@ import { StreamRepository } from './repositories';
 @Module({
   controllers: [StreamController],
   providers: [StreamService, StreamRepository],
+  exports: [StreamService],
 })
 export class StreamModule {}
