@@ -6,6 +6,7 @@ import {
   WebSocketServer,
   ConnectedSocket,
   OnGatewayDisconnect,
+  WsException,
 } from '@nestjs/websockets';
 import { MessageService } from './message.service';
 import { Socket, Server } from 'socket.io';
@@ -13,11 +14,11 @@ import * as cookie from 'cookie';
 import { JwtService } from '@nestjs/jwt';
 import { Logger } from '@nestjs/common';
 import { CreateMessageDto, JoinStreamRequest } from './dto';
-import { StreamService } from 'src/stream/stream.service';
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
   cors: {
-    origin: 'http://localhost:3000',
+    origin: 'localhost:3000',
     credentials: true,
   },
   namespace: 'chat',
@@ -28,7 +29,7 @@ export class MessageGateway
   constructor(
     private readonly messageService: MessageService,
     private readonly jwtService: JwtService,
-    private readonly streamService: StreamService,
+    private readonly configService: ConfigService,
   ) {}
 
   private readonly logger = new Logger(MessageGateway.name);
@@ -41,41 +42,60 @@ export class MessageGateway
     @MessageBody() data: JoinStreamRequest,
     @ConnectedSocket() client: Socket,
   ) {
+    await this.messageService.validateStreamExists(data.streamId);
+
+    const username = client.data.user?.username || 'Гость';
+
     if (client.data.activeStreamId) {
       const oldStreamId = client.data.activeStreamId;
       await client.leave(`stream_${oldStreamId}`);
 
       this.server.to(`stream_${oldStreamId}`).emit('sys_message', {
-        text: `Пользователь ${client.data.user?.username || 'Гость'} покинул трансляцию`,
+        text: `Пользователь ${username} покинул трансляцию`,
       });
     }
 
-    const stream = await this.streamService.findById(data.streamId);
-
-    if (!stream) {
-      this.logger.error(`Прямая трансляция не существует: ${data.streamId}`);
-      client.emit('error', { message: 'Stream not found' });
-      return;
-    }
-
     await client.join(`stream_${data.streamId}`);
-
     client.data.activeStreamId = data.streamId;
 
     this.server.to(`stream_${data.streamId}`).emit('sys_message', {
-      text: `Пользователь ${client.data.user?.username || 'Гость'} присоединился к чату`,
+      text: `Пользователь ${username} присоединился к чату`,
     });
 
     this.logger.log(
       `Пользователь ${client.id} присоединился к чату трансляции ${data.streamId}`,
     );
+
+    return {
+      success: true,
+      streamId: data.streamId,
+      activeUser: {
+        id: client.data.user?.id,
+        username: username,
+        isGuest: client.data.user?.isGuest,
+      },
+    };
   }
 
   @SubscribeMessage('sendMessage')
   async sendMessage(
     @MessageBody() data: CreateMessageDto,
     @ConnectedSocket() client: Socket,
-  ) {}
+  ) {
+    if (client.data.user?.isGuest) {
+      this.logger.error('Unauthorized');
+      throw new WsException('Unauthorized');
+    }
+
+    const message = await this.messageService.createMessage(
+      data,
+      client.data.user.id as string,
+    );
+
+    this.server.to(`stream_${data.streamId}`).emit('newMessage', message);
+
+    return message;
+  }
 
   async handleConnection(client: Socket) {
     const rawCookies = client.handshake.headers.cookie;
@@ -94,7 +114,9 @@ export class MessageGateway
         return;
       }
 
-      const payload = await this.jwtService.verifyAsync(authToken);
+      const payload = await this.jwtService.verifyAsync(authToken, {
+        secret: this.configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
+      });
 
       client.data.user = {
         id: payload.sub,
@@ -121,6 +143,8 @@ export class MessageGateway
       });
     }
 
-    this.logger.log(`[WS] Пользователь ${client.data.user?.id} отключился`);
+    this.logger.log(
+      `[WS] Пользователь ${client.data.user.id ?? 'Гость'} отключился`,
+    );
   }
 }
