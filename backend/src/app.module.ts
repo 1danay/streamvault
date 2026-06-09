@@ -10,6 +10,8 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from './shared/guards';
 import { StreamModule } from './stream/stream.module';
 
+import { MessageModule } from './message/message.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -18,6 +20,7 @@ import { StreamModule } from './stream/stream.module';
     JwtModule.register({ global: true }),
     PrismaModule,
     StreamModule,
+    MessageModule,
   ],
   providers: [
     PrismaService,

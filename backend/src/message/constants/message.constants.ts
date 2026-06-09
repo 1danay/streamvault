@@ -1,0 +1,2 @@
+export const DEFAULT_MESSAGE_LIMIT = 50;
+export const DEFAULT_MESSAGE_OFFSET = 0;

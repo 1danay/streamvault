@@ -8,27 +8,44 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        String    @id @default(uuid())
+  email     String    @unique
   password  String
-  username  String   @unique
+  username  String    @unique
   streams   Stream[]
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  messages  Message[]
 
   @@map("users")
 }
 
 model Stream {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   title        String
   description  String?
-  isLive       Boolean  @default(false)
+  isLive       Boolean   @default(false)
   thumbnailUrl String?
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
+  user         User      @relation(fields: [userId], references: [id])
+  createdAt    DateTime  @default(now())
+  messages     Message[]
 
   @@index([userId])
   @@index([isLive])
   @@map("streams")
+}
+
+model Message {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  streamId String
+  stream   Stream @relation(fields: [streamId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([streamId, createdAt(sort: Desc)])
+  @@map("messages")
 }
