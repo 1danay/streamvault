@@ -82,8 +82,20 @@ export class MessageGateway
     @MessageBody() data: CreateMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
+    console.log(client.data.user);
+
     if (client.data.user?.isGuest) {
       this.logger.error('Unauthorized');
+      throw new WsException('Unauthorized');
+    }
+
+    if (client.data.user.expiresAt && Date.now() > client.data.user.expiresAt) {
+      this.logger.error(
+        `Ошибка. Сессия пользователя истекла: ${client.data.user?.id}`,
+      );
+
+      client.data.user = { isGuest: true };
+
       throw new WsException('Unauthorized');
     }
 
