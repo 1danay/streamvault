@@ -22,14 +22,22 @@ export class StreamRepository implements IStreamRepository {
 
   public async update(dto: UpdateStreamDto, streamId: string): Promise<Stream> {
     return await this.prisma.stream.update({
-      where: {
-        id: streamId,
-      },
+      where: { id: streamId },
       data: {
         title: dto.title,
         description: dto.description,
         thumbnailUrl: dto.thumbnailUrl,
       },
+    });
+  }
+
+  public async setLiveStatus(
+    isLive: boolean,
+    streamId: string,
+  ): Promise<Stream> {
+    return await this.prisma.stream.update({
+      where: { id: streamId },
+      data: { isLive },
     });
   }
 

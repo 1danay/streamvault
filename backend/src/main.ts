@@ -5,6 +5,7 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor.js';
 import cookieParser from 'cookie-parser';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,6 +28,19 @@ async function bootstrap() {
   });
 
   app.useGlobalInterceptors(new LoggingInterceptor());
+
+  const rabbitMqUrls = config.getOrThrow<string>('RABBIT_MQ_URLS').split(',');
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.RMQ,
+    options: {
+      urls: rabbitMqUrls,
+      queue: 'main_queue',
+      queueOptions: {
+        durable: true,
+      },
+    },
+  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Streamvault API')
