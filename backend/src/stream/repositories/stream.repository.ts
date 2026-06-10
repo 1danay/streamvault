@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IStreamRepository } from './stream.repository.interface';
 import { Stream } from 'generated/prisma/client';
 import { CreateStreamDto, UpdateStreamDto } from '../dto';
-import { PrismaService } from 'src/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class StreamRepository implements IStreamRepository {
