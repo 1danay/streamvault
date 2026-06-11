@@ -10,12 +10,14 @@ import { StreamRepository } from './repositories';
 import { CreateStreamDto, UpdateStreamDto } from './dto';
 import { Stream } from 'generated/prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class StreamService {
   constructor(
     @Inject('AMQP_SERVICE') private client: ClientProxy,
     private readonly streamRepository: StreamRepository,
+    private readonly redis: RedisService,
   ) {}
 
   private readonly logger = new Logger(StreamService.name);
@@ -34,6 +36,9 @@ export class StreamService {
     }
 
     const newStream = await this.streamRepository.create(dto, userId);
+
+    const cacheKey = 'streams:all';
+    await this.redis.del(cacheKey);
 
     try {
       this.client.emit('stream_started', newStream);
@@ -57,15 +62,46 @@ export class StreamService {
   ): Promise<Stream> {
     await this.getStreamAndValidateOwner(streamId, userId);
 
-    return await this.streamRepository.update(dto, streamId);
+    const updatedStream = await this.streamRepository.update(dto, streamId);
+
+    await this.redis.del(`stream:${updatedStream.id}`);
+    await this.redis.del('streams:all');
+
+    return updatedStream;
   }
 
   public async findById(id: string): Promise<Stream | null> {
-    return await this.streamRepository.findById(id);
+    const cacheKey = `stream:${id}`;
+
+    const cachedStream = await this.redis.get(cacheKey);
+    if (cachedStream) {
+      return JSON.parse(cachedStream) as Stream;
+    }
+
+    const stream = await this.streamRepository.findById(id);
+
+    if (stream) {
+      await this.redis.set(cacheKey, JSON.stringify(stream), 'EX', 300);
+    }
+
+    return stream;
   }
 
   public async findAll(): Promise<Stream[]> {
-    return await this.streamRepository.findAll();
+    const cacheKey = 'streams:all';
+
+    const cachedStreams = await this.redis.get(cacheKey);
+
+    if (cachedStreams) {
+      this.logger.log('Данные findAll взяты из Redis кэша');
+      return JSON.parse(cachedStreams) as Stream[];
+    }
+
+    const streams = await this.streamRepository.findActiveStreams();
+
+    await this.redis.set(cacheKey, JSON.stringify(streams), 'EX', 120);
+
+    return streams;
   }
 
   public async deleteStream(streamId: string, userId: string): Promise<void> {
@@ -73,12 +109,24 @@ export class StreamService {
 
     await this.streamRepository.delete(streamId);
 
+    await this.redis.del(`stream:${streamId}`);
+    await this.redis.del('streams:all');
+
     return;
   }
 
   public async endStream(streamId: string, userId: string): Promise<Stream> {
     await this.getStreamAndValidateOwner(streamId, userId);
-    return await this.streamRepository.setLiveStatus(false, streamId);
+
+    const updatedStream = await this.streamRepository.setLiveStatus(
+      false,
+      streamId,
+    );
+
+    await this.redis.del(`stream:${updatedStream.id}`);
+    await this.redis.del('streams:all');
+
+    return updatedStream;
   }
 
   private async getStreamAndValidateOwner(

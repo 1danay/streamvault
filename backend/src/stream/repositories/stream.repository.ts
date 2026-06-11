@@ -41,8 +41,11 @@ export class StreamRepository implements IStreamRepository {
     });
   }
 
-  public async findAll(): Promise<Stream[]> {
+  public async findActiveStreams(): Promise<Stream[]> {
     return await this.prisma.stream.findMany({
+      where: {
+        isLive: true,
+      },
       orderBy: {
         createdAt: 'desc',
       },

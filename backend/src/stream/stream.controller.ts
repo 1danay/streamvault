@@ -55,7 +55,7 @@ export class StreamController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Find all streams' })
+  @ApiOperation({ summary: 'Find all active streams' })
   @ApiResponse({ status: 200, type: StreamResponse, isArray: true })
   @HttpCode(200)
   async getAllStreams() {
