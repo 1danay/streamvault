@@ -6,7 +6,7 @@
 
 ## Стек
 
-**Backend:** NestJS · TypeScript · PostgreSQL · PrismaORM · Redis · RabbitMQ · WebSocket · JWT · Swagger(OpenAPI) · Docker
+**Backend:** NestJS · TypeScript · PostgreSQL · PrismaORM · Redis · RabbitMQ · Socket.io · AWS S3 · JWT · Swagger(OpenAPI) · Docker
 
 **Frontend:** Next.js · TypeScript · React · TailwindCSS
 
