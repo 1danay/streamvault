@@ -62,7 +62,7 @@ export class StreamController {
     return this.streamService.findAll();
   }
 
-  @Patch(':streamId')
+  @Patch(':streamId/finish')
   @ApiOperation({ summary: 'End stream by id' })
   @ApiResponse({ status: 200, description: 'Stream successfully ended' })
   @HttpCode(200)
