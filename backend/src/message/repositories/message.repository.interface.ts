@@ -1,7 +1,7 @@
 import { Message } from 'generated/prisma/client';
-import { CreateMessageDto, GetMessagesData } from '../dto';
+import { GetMessagesData } from '../dto';
 
 export interface IMessageRepository {
-  create(dto: CreateMessageDto, userId: string): Promise<Message>;
+  create(data: Message): Promise<Message>;
   getMessages(dto: GetMessagesData): Promise<Message[]>;
 }
