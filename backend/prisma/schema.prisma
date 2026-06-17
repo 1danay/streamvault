@@ -15,6 +15,7 @@ model User {
   streams   Stream[]
   createdAt DateTime  @default(now())
   messages  Message[]
+  files     File[]
 
   @@map("users")
 }
@@ -54,13 +55,15 @@ model Message {
 }
 
 model File {
-  id        String   @id @default(uuid())
-  key       String   @unique
-  mimeType  String
-  size      Int
-  createdAt DateTime @default(now())
+  id         String   @id @default(uuid())
+  uploaderId String
+  key        String   @unique
+  mimeType   String
+  size       Int      @default(0)
+  createdAt  DateTime @default(now())
 
   stream Stream?
+  user   User    @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
 
   @@map("files")
 }

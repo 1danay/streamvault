@@ -6,8 +6,13 @@ import {
 } from '@nestjs/common';
 import { UPLOAD_CHUNK_SIZE } from './constants';
 import { ConfigService } from '@nestjs/config';
-import { InitFileUploadData, InitFileUploadResponse } from './dto';
+import {
+  CreateFileData,
+  InitFileUploadData,
+  InitFileUploadResponse,
+} from './dto';
 import { v4 as uuidv4 } from 'uuid';
+import { MediaRepository } from './repositories';
 
 @Injectable()
 export class MediaService {
@@ -17,7 +22,10 @@ export class MediaService {
 
   private readonly logger = new Logger(MediaService.name);
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private readonly mediaRepository: MediaRepository,
+  ) {
     this.s3Client = new S3Client({
       endpoint: this.configService.getOrThrow<string>('AWS_ENDPOINT'),
       region: this.configService.getOrThrow<string>('AWS_REGION'),
@@ -54,6 +62,14 @@ export class MediaService {
     }
 
     this.logger.debug(response);
+
+    const fileData: CreateFileData = {
+      id: fileId,
+      key: fileKey,
+      mimeType: data.contentType,
+    };
+
+    await this.mediaRepository.create(fileData, userId);
 
     return {
       uploadId: response.UploadId,
