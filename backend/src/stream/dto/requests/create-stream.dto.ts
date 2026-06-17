@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsISO8601,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateStreamDto {
   @ApiProperty({
@@ -30,4 +36,11 @@ export class CreateStreamDto {
   @IsString()
   @IsOptional()
   public thumbnailUrl: string;
+
+  @ApiProperty({
+    example: '2026-06-20T18:00:00Z',
+    description: 'ISO 8601 date-time when the stream is scheduled',
+  })
+  @IsISO8601()
+  public scheduledAt: string;
 }

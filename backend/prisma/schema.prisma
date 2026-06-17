@@ -30,6 +30,8 @@ model Stream {
   createdAt    DateTime  @default(now())
   scheduledAt  DateTime
   messages     Message[]
+  fileId       String?   @unique
+  file         File?     @relation(fields: [fileId], references: [id])
 
   @@index([userId])
   @@index([isLive])
@@ -49,4 +51,16 @@ model Message {
 
   @@index([streamId, createdAt(sort: Desc)])
   @@map("messages")
+}
+
+model File {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  mimeType  String
+  size      Int
+  createdAt DateTime @default(now())
+
+  stream Stream?
+
+  @@map("files")
 }

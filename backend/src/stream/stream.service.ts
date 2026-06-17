@@ -26,6 +26,8 @@ export class StreamService {
     dto: CreateStreamDto,
     userId: string,
   ): Promise<Stream> {
+    this.validateScheduledDate(dto.scheduledAt);
+
     const activeStream = await this.streamRepository.findActiveByUser(userId);
 
     if (activeStream.length > 0) {
@@ -60,6 +62,9 @@ export class StreamService {
     streamId: string,
     userId: string,
   ): Promise<Stream> {
+    if (dto.scheduledAt) {
+      this.validateScheduledDate(dto.scheduledAt);
+    }
     await this.getStreamAndValidateOwner(streamId, userId);
 
     const updatedStream = await this.streamRepository.update(dto, streamId);
@@ -148,5 +153,30 @@ export class StreamService {
     }
 
     return stream;
+  }
+
+  private validateScheduledDate(scheduledAt: string) {
+    const now = new Date();
+    const scheduled = new Date(scheduledAt);
+
+    if (isNaN(scheduled.getTime())) {
+      this.logger.error('Некорректная дата премьеры');
+      throw new BadRequestException('Invalid scheduled date');
+    }
+
+    if (scheduled <= now) {
+      this.logger.error('Некорректная дата премьеры: дата в прошлом');
+      throw new BadRequestException('Scheduled date must be in the future');
+    }
+
+    const maxDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    maxDate.setMonth(maxDate.getMonth() + 1);
+
+    if (scheduled > maxDate) {
+      this.logger.error(
+        'Некорректная дата премьеры: дата больше чем через месяц',
+      );
+      throw new BadRequestException('Scheduled date must be within one month');
+    }
   }
 }

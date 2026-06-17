@@ -13,9 +13,9 @@ export class StreamRepository implements IStreamRepository {
       data: {
         title: dto.title,
         description: dto.description,
-        isLive: true,
         thumbnailUrl: dto.thumbnailUrl,
         userId,
+        scheduledAt: dto.scheduledAt,
       },
     });
   }
@@ -27,6 +27,7 @@ export class StreamRepository implements IStreamRepository {
         title: dto.title,
         description: dto.description,
         thumbnailUrl: dto.thumbnailUrl,
+        scheduledAt: dto.scheduledAt,
       },
     });
   }

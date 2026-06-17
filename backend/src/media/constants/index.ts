@@ -1,0 +1,3 @@
+const ONE_MB_IN_BYTES = 1024 * 1024;
+
+export const UPLOAD_CHUNK_SIZE = 5 * ONE_MB_IN_BYTES; // 5MB
