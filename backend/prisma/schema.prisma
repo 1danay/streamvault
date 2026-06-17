@@ -28,6 +28,7 @@ model Stream {
   userId       String
   user         User      @relation(fields: [userId], references: [id])
   createdAt    DateTime  @default(now())
+  scheduledAt  DateTime
   messages     Message[]
 
   @@index([userId])
