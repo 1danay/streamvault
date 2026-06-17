@@ -92,6 +92,12 @@ REDIS_USER='default'
 REDIS_PASSWORD='123456'
 REDIS_HOST='localhost'
 REDIS_PORT=6379
+
+AWS_BUCKET_NAME="your_bucket_name"
+AWS_SECRET_ACCESS_KEY="YCdjSND2asidj38sSNdjzc..."
+AWS_ACCESS_KEY_ID="YCdjSND2asidj38sSNdjzc..."
+AWS_REGION=ru-central1
+AWS_ENDPOINT="your_storage_endpoint"
 ```
 
 ## API
