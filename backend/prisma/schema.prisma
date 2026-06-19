@@ -55,15 +55,22 @@ model Message {
 }
 
 model File {
-  id         String   @id @default(uuid())
+  id         String     @id @default(uuid())
   uploaderId String
-  key        String   @unique
+  key        String     @unique
+  status     FileStatus @default(PENDING)
   mimeType   String
-  size       Int      @default(0)
-  createdAt  DateTime @default(now())
+  size       Int        @default(0)
+  createdAt  DateTime   @default(now())
 
   stream Stream?
   user   User    @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
 
   @@map("files")
+}
+
+enum FileStatus {
+  PENDING
+  COMPLETED
+  FAILED
 }

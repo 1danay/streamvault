@@ -18,4 +18,12 @@ export class MediaRepository implements IMediaRepository {
       },
     });
   }
+
+  public async findByKey(key: string): Promise<File | null> {
+    return await this.prisma.file.findUnique({
+      where: {
+        key,
+      },
+    });
+  }
 }

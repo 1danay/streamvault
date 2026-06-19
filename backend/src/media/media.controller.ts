@@ -1,6 +1,10 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { InitFileUploadData, InitFileUploadResponse } from './dto';
+import {
+  GetPresignedUrlDto,
+  InitFileUploadData,
+  InitFileUploadResponse,
+} from './dto';
 import { CurrentUser } from 'src/shared/decorators';
 import { MediaService } from './media.service';
 
@@ -8,7 +12,7 @@ import { MediaService } from './media.service';
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
-  @Post()
+  @Post('init')
   @ApiOperation({ summary: 'Initialize multipart upload' })
   @ApiResponse({ status: 201, type: InitFileUploadResponse })
   @HttpCode(201)
@@ -17,5 +21,16 @@ export class MediaController {
     @CurrentUser('id') userId: string,
   ): Promise<InitFileUploadResponse> {
     return await this.mediaService.initFileUpload(dto, userId);
+  }
+
+  @Post('part-url')
+  @ApiOperation({ summary: 'Get presigned url for file part' })
+  @ApiResponse({ status: 200, type: String })
+  @HttpCode(200)
+  async getPresignedUrl(
+    @Body() dto: GetPresignedUrlDto,
+    @CurrentUser('id') userId: string,
+  ): Promise<string> {
+    return await this.mediaService.getPartPresignedUrl(dto, userId);
   }
 }

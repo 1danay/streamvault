@@ -1,18 +1,28 @@
-import { CreateMultipartUploadCommand, S3Client } from '@aws-sdk/client-s3';
 import {
+  CreateMultipartUploadCommand,
+  S3Client,
+  UploadPartCommand,
+} from '@aws-sdk/client-s3';
+import {
+  BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   Logger,
+  NotFoundException,
 } from '@nestjs/common';
-import { UPLOAD_CHUNK_SIZE } from './constants';
+import { PRESIGNED_URL_EXPIRE, UPLOAD_CHUNK_SIZE } from './constants';
 import { ConfigService } from '@nestjs/config';
 import {
   CreateFileData,
+  GetPresignedUrlDto,
   InitFileUploadData,
   InitFileUploadResponse,
 } from './dto';
 import { v4 as uuidv4 } from 'uuid';
 import { MediaRepository } from './repositories';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { FileStatus } from 'generated/prisma/enums';
 
 @Injectable()
 export class MediaService {
@@ -76,6 +86,42 @@ export class MediaService {
       fileKey: fileKey,
       chunkSize: this.CHUNK_SIZE,
     };
+  }
+
+  public async getPartPresignedUrl(
+    dto: GetPresignedUrlDto,
+    userId: string,
+  ): Promise<string> {
+    const file = await this.mediaRepository.findByKey(dto.key);
+
+    if (!file) {
+      this.logger.error('Файл не найден');
+      throw new NotFoundException('File not found');
+    }
+
+    if (file.uploaderId !== userId) {
+      this.logger.error('Недостаточно прав для управления загрузкой');
+      throw new ForbiddenException('Not your upload');
+    }
+
+    if (
+      file.status == FileStatus.COMPLETED ||
+      file.status == FileStatus.FAILED
+    ) {
+      this.logger.error('Не удалось загрузить часть');
+      throw new BadRequestException('Failed to upload part');
+    }
+
+    const command = new UploadPartCommand({
+      Bucket: this.bucketName,
+      Key: dto.key,
+      UploadId: dto.uploadId,
+      PartNumber: dto.partNumber,
+    });
+
+    return await getSignedUrl(this.s3Client, command, {
+      expiresIn: PRESIGNED_URL_EXPIRE,
+    });
   }
 
   private generateFileKey(filename: string, fileId: string): string {
