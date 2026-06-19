@@ -1,4 +1,5 @@
 import {
+  CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
   S3Client,
   UploadPartCommand,
@@ -14,6 +15,7 @@ import {
 import { PRESIGNED_URL_EXPIRE, UPLOAD_CHUNK_SIZE } from './constants';
 import { ConfigService } from '@nestjs/config';
 import {
+  CompleteUploadDto,
   CreateFileData,
   GetPresignedUrlDto,
   InitFileUploadData,
@@ -23,6 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MediaRepository } from './repositories';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { FileStatus } from 'generated/prisma/enums';
+import { File } from 'generated/prisma/client';
 
 @Injectable()
 export class MediaService {
@@ -92,17 +95,7 @@ export class MediaService {
     dto: GetPresignedUrlDto,
     userId: string,
   ): Promise<string> {
-    const file = await this.mediaRepository.findByKey(dto.key);
-
-    if (!file) {
-      this.logger.error('Файл не найден');
-      throw new NotFoundException('File not found');
-    }
-
-    if (file.uploaderId !== userId) {
-      this.logger.error('Недостаточно прав для управления загрузкой');
-      throw new ForbiddenException('Not your upload');
-    }
+    const file = await this.fetchAndValidateFileOwner(dto.key, userId);
 
     if (
       file.status == FileStatus.COMPLETED ||
@@ -122,6 +115,53 @@ export class MediaService {
     return await getSignedUrl(this.s3Client, command, {
       expiresIn: PRESIGNED_URL_EXPIRE,
     });
+  }
+
+  public async completeMultipartUpload(
+    dto: CompleteUploadDto,
+    userId: string,
+  ): Promise<File> {
+    const file = await this.fetchAndValidateFileOwner(dto.key, userId);
+
+    if (
+      file.status === FileStatus.COMPLETED ||
+      file.status === FileStatus.FAILED
+    ) {
+      this.logger.error('Не удалось завершить загрузку');
+      throw new BadRequestException('Failed to complete upload');
+    }
+
+    const command = new CompleteMultipartUploadCommand({
+      Bucket: this.bucketName,
+      Key: dto.key,
+      UploadId: dto.uploadId,
+      MultipartUpload: {
+        Parts: dto.parts.sort((a, b) => a.PartNumber - b.PartNumber),
+      },
+    });
+
+    await this.s3Client.send(command);
+
+    return await this.mediaRepository.completeUpload(file.id);
+  }
+
+  public async fetchAndValidateFileOwner(
+    fileKey: string,
+    userId: string,
+  ): Promise<File> {
+    const file = await this.mediaRepository.findByKey(fileKey);
+
+    if (!file) {
+      this.logger.error('Файл не найден');
+      throw new NotFoundException('File not found');
+    }
+
+    if (file.uploaderId !== userId) {
+      this.logger.error('Недостаточно прав для управления загрузкой');
+      throw new ForbiddenException('Not your upload');
+    }
+
+    return file;
   }
 
   private generateFileKey(filename: string, fileId: string): string {

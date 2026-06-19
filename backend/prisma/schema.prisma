@@ -62,6 +62,7 @@ model File {
   mimeType   String
   size       Int        @default(0)
   createdAt  DateTime   @default(now())
+  uploadedAt DateTime?
 
   stream Stream?
   user   User    @relation(fields: [uploaderId], references: [id], onDelete: Cascade)

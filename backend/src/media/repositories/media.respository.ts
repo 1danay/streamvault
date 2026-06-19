@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IMediaRepository } from './media.repository.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateFileData } from '../dto';
-import { File } from 'generated/prisma/client';
+import { File, FileStatus } from 'generated/prisma/client';
 
 @Injectable()
 export class MediaRepository implements IMediaRepository {
@@ -15,6 +15,18 @@ export class MediaRepository implements IMediaRepository {
         key: data.key,
         mimeType: data.mimeType,
         uploaderId: userId,
+      },
+    });
+  }
+
+  public async completeUpload(fileId: string): Promise<File> {
+    return await this.prisma.file.update({
+      where: {
+        id: fileId,
+      },
+      data: {
+        status: FileStatus.COMPLETED,
+        uploadedAt: new Date().toISOString(),
       },
     });
   }

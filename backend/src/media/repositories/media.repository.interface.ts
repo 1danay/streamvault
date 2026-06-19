@@ -4,4 +4,5 @@ import { CreateFileData } from '../dto';
 export interface IMediaRepository {
   create(data: CreateFileData, userId: string): Promise<File>;
   findByKey(key: string): Promise<File | null>;
+  completeUpload(fileId: string): Promise<File>;
 }
