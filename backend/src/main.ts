@@ -58,6 +58,7 @@ async function bootstrap() {
   const port = config.getOrThrow<number>('HTTP_PORT');
   const host = config.getOrThrow<string>('HTTP_HOST');
 
+  await app.startAllMicroservices();
   await app.listen(port);
 
   logger.log(`🚀 Gateway started: ${host}`);

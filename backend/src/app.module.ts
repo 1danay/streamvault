@@ -13,6 +13,7 @@ import { MessageModule } from './message/message.module';
 import { RedisModule } from './redis/redis.module.js';
 import { MediaModule } from './media/media.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     MessageModule,
     MediaModule,
     ScheduleModule.forRoot(),
+    NotificationModule,
   ],
   providers: [
     {
