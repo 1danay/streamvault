@@ -30,12 +30,14 @@ model Stream {
   user         User      @relation(fields: [userId], references: [id])
   createdAt    DateTime  @default(now())
   scheduledAt  DateTime
+  startedAt    DateTime?
   messages     Message[]
   fileId       String?   @unique
   file         File?     @relation(fields: [fileId], references: [id])
 
   @@index([userId])
   @@index([isLive])
+  @@index([isLive, scheduledAt])
   @@map("streams")
 }
 

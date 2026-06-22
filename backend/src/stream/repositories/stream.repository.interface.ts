@@ -6,6 +6,7 @@ export interface IStreamRepository {
   update(dto: UpdateStreamDto, streamId: string): Promise<Stream>;
   setLiveStatus(isLive: boolean, streamId: string): Promise<Stream>;
   findActiveStreams(): Promise<Stream[]>;
+  startLiveStreams(): Promise<Stream[]>;
   findActiveByUser(userId: string): Promise<Stream[]>;
   findById(id: string): Promise<Stream | null>;
   delete(id: string): Promise<Stream>;

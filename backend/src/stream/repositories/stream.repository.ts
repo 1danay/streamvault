@@ -53,6 +53,23 @@ export class StreamRepository implements IStreamRepository {
     });
   }
 
+  public async startLiveStreams(): Promise<Stream[]> {
+    const now = new Date();
+
+    const toStart = await this.prisma.stream.findMany({
+      where: { isLive: false, scheduledAt: { lte: now } },
+    });
+
+    if (toStart.length === 0) return [];
+
+    await this.prisma.stream.updateMany({
+      where: { id: { in: toStart.map((s) => s.id) } },
+      data: { isLive: true, startedAt: now },
+    });
+
+    return toStart;
+  }
+
   public async findActiveByUser(userId: string): Promise<Stream[]> {
     return await this.prisma.stream.findMany({
       where: {

@@ -11,6 +11,7 @@ import { CreateStreamDto, UpdateStreamDto } from './dto';
 import { Stream } from 'generated/prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisService } from 'src/redis/redis.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class StreamService {
@@ -21,6 +22,16 @@ export class StreamService {
   ) {}
 
   private readonly logger = new Logger(StreamService.name);
+
+  @Cron('0 * * * * *') // 0 second of every minute
+  async handleStartStreams() {
+    const updatedStreams = await this.streamRepository.startLiveStreams();
+    await this.redis.del('streams:all');
+
+    for (const stream of updatedStreams) {
+      await this.redis.del(`stream:${stream.id}`);
+    }
+  }
 
   public async createStream(
     dto: CreateStreamDto,
@@ -53,6 +64,8 @@ export class StreamService {
         `Не удалось отправить событие в RabbitMQ: ${err.message}`,
       );
     }
+
+    this.logger.debug(new Date().toISOString());
 
     return newStream;
   }
