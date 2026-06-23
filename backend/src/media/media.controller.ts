@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CompleteFileUploadResponse,
@@ -30,11 +30,19 @@ export class MediaController {
   @ApiOperation({ summary: 'Get presigned url for file part' })
   @ApiResponse({ status: 200, type: String })
   @HttpCode(200)
-  async getPresignedUrl(
+  async getPartPresignedUrl(
     @Body() dto: GetPresignedUrlDto,
     @CurrentUser('id') userId: string,
   ): Promise<string> {
     return await this.mediaService.getPartPresignedUrl(dto, userId);
+  }
+
+  @Get(':fileId/url')
+  @ApiOperation({ summary: 'Get file presigned url' })
+  @ApiResponse({ status: 200, type: String })
+  @HttpCode(200)
+  async getFilePresignedUrl(@Param('fileId') fileId: string): Promise<string> {
+    return await this.mediaService.getFileUrl(fileId);
   }
 
   @Post('complete-upload')

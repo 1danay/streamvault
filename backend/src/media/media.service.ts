@@ -1,6 +1,7 @@
 import {
   CompleteMultipartUploadCommand,
   CreateMultipartUploadCommand,
+  GetObjectCommand,
   S3Client,
   UploadPartCommand,
 } from '@aws-sdk/client-s3';
@@ -26,6 +27,7 @@ import { MediaRepository } from './repositories';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { FileStatus } from 'generated/prisma/enums';
 import { File } from 'generated/prisma/client';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class MediaService {
@@ -38,6 +40,7 @@ export class MediaService {
   constructor(
     private configService: ConfigService,
     private readonly mediaRepository: MediaRepository,
+    private readonly redis: RedisService,
   ) {
     this.s3Client = new S3Client({
       endpoint: this.configService.getOrThrow<string>('AWS_ENDPOINT'),
@@ -115,6 +118,29 @@ export class MediaService {
     return await getSignedUrl(this.s3Client, command, {
       expiresIn: PRESIGNED_URL_EXPIRE,
     });
+  }
+
+  public async getFileUrl(fileId: string): Promise<string> {
+    const cacheKey = `file:url:${fileId}`;
+
+    const cached = await this.redis.get(cacheKey);
+    if (cached) return cached;
+
+    const file = await this.mediaRepository.findById(fileId);
+    if (!file) throw new NotFoundException('File not found');
+
+    const command = new GetObjectCommand({
+      Bucket: this.bucketName,
+      Key: file.key,
+    });
+
+    const url = await getSignedUrl(this.s3Client, command, {
+      expiresIn: PRESIGNED_URL_EXPIRE,
+    });
+
+    await this.redis.set(cacheKey, url, 'EX', PRESIGNED_URL_EXPIRE - 60);
+
+    return url;
   }
 
   public async completeMultipartUpload(

@@ -38,4 +38,12 @@ export class MediaRepository implements IMediaRepository {
       },
     });
   }
+
+  public async findById(fileId: string): Promise<File | null> {
+    return await this.prisma.file.findUnique({
+      where: {
+        id: fileId,
+      },
+    });
+  }
 }
