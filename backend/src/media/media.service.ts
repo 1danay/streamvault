@@ -123,9 +123,6 @@ export class MediaService {
   public async getFileUrl(fileId: string): Promise<string> {
     const cacheKey = `file:url:${fileId}`;
 
-    const cached = await this.redis.get(cacheKey);
-    if (cached) return cached;
-
     const file = await this.mediaRepository.findById(fileId);
     if (!file) throw new NotFoundException('File not found');
 

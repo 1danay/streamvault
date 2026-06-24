@@ -7,7 +7,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { StreamRepository } from './repositories';
-import { CreateStreamDto, StreamResponse, UpdateStreamDto } from './dto';
+import {
+  CreateStreamDto,
+  FildAllStreamsResponse,
+  StreamResponse,
+  UpdateStreamDto,
+} from './dto';
 import { Stream } from 'generated/prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisService } from 'src/redis/redis.service';
@@ -88,20 +93,31 @@ export class StreamService {
     return this.toResponse(stream);
   }
 
-  public async findAll(): Promise<StreamResponse[]> {
+  public async findAll(): Promise<FildAllStreamsResponse> {
     const cacheKey = 'streams:all';
 
-    const cachedStreams = await this.redis.get(cacheKey);
-    if (cachedStreams) {
-      this.logger.log('Данные findAll взяты из Redis кэша');
-      const streams = JSON.parse(cachedStreams) as Stream[];
-      return this.toResponseMany(streams);
+    const cachedData = await this.redis.get(cacheKey);
+    if (cachedData) {
+      this.logger.log('Данные для главной страницы взяты из Redis кэша');
+      return JSON.parse(cachedData) as FildAllStreamsResponse;
     }
 
-    const streams = await this.streamRepository.findActiveStreams();
-    await this.redis.set(cacheKey, JSON.stringify(streams), 'EX', 120);
+    const [activeStreams, upcomingStreams] = await Promise.all([
+      this.streamRepository.findActiveStreams(),
+      this.streamRepository.findUpcomingStreams(),
+    ]);
 
-    return this.toResponseMany(streams);
+    const active = await this.toResponseMany(activeStreams);
+    const upcoming = await this.toResponseMany(upcomingStreams);
+
+    const response: FildAllStreamsResponse = {
+      active,
+      upcoming,
+    };
+
+    await this.redis.set(cacheKey, JSON.stringify(response), 'EX', 120);
+
+    return response;
   }
 
   public async deleteStream(streamId: string, userId: string): Promise<void> {

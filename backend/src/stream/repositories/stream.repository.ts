@@ -53,6 +53,20 @@ export class StreamRepository implements IStreamRepository {
     });
   }
 
+  public async findUpcomingStreams(): Promise<Stream[]> {
+    return await this.prisma.stream.findMany({
+      where: {
+        isLive: false,
+        scheduledAt: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        scheduledAt: 'asc',
+      },
+    });
+  }
+
   public async startLiveStreams(): Promise<Stream[]> {
     const now = new Date();
 
