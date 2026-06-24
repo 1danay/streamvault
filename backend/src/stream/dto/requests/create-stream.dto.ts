@@ -28,14 +28,12 @@ export class CreateStreamDto {
   public description: string;
 
   @ApiProperty({
-    example: 'https://my-bucket.s3.amazonaws.com/thumbnails/stream-123.jpg',
+    example: '55919d9a-fb2a-4cb8-a244-1192578952af',
     description:
-      'URL of the stream thumbnail. Uses default placeholder if omitted.',
-    required: false,
+      'File id of the stream thumbnail. Uses default placeholder if omitted.',
   })
   @IsString()
-  @IsOptional()
-  public thumbnailUrl: string;
+  public thumbnailFileId: string;
 
   @ApiProperty({
     example: '2026-06-20T18:00:00Z',

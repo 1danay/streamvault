@@ -14,6 +14,9 @@ export class StreamResponse {
   isLive: boolean;
 
   @ApiProperty({ required: false })
+  thumbnailFileId: string | null;
+
+  @ApiProperty({ required: false })
   thumbnailUrl: string | null;
 
   @ApiProperty()
@@ -21,4 +24,13 @@ export class StreamResponse {
 
   @ApiProperty()
   createdAt: Date;
+
+  @ApiProperty({ required: false })
+  scheduledAt: Date | null;
+
+  @ApiProperty({ required: false })
+  startedAt: Date | null;
+
+  @ApiProperty({ required: false })
+  streamFileId: string | null;
 }

@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from 'generated/prisma/client';
 
-export class SafeUserData implements Omit<User, 'password'> {
+export class SafeUserData {
   @ApiProperty({
     example: '6f9c9b0e-8b8b-4a5c-9c1a-2b3c4d5e6f7g',
     description: 'Unique user identifier(UUID)',
@@ -19,6 +18,22 @@ export class SafeUserData implements Omit<User, 'password'> {
     description: 'Username',
   })
   username: string;
+
+  @ApiProperty({
+    example: '6f9c9b0e-8b8b-4a5c-9c1a-2b3c4d5e6f7g',
+    description: 'Unique user avatar identifier(UUID)',
+    required: false,
+  })
+  avatarFileId: string | null;
+
+  @ApiProperty({
+    example:
+      'https://storage.yandexcloud.net/streamvault/avatars/uuid.jpg?X-Amz-...',
+    description:
+      'Presigned URL for avatar image, valid for 1 hour. Null if no avatar set.',
+    required: false,
+  })
+  avatarFileUrl: string | null;
 
   @ApiProperty({
     example: '2026-05-30T15:00:00.000Z',

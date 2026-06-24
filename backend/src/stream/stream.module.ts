@@ -4,9 +4,11 @@ import { StreamController } from './stream.controller';
 import { StreamRepository } from './repositories';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { MediaModule } from 'src/media/media.module';
 
 @Module({
   imports: [
+    MediaModule,
     ClientsModule.registerAsync([
       {
         name: 'AMQP_SERVICE',

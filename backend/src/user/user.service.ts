@@ -2,10 +2,15 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserData, UsersRepository } from './repositories';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, SafeUserData } from './dto';
+import { MediaService } from 'src/media/media.service';
+import { User } from 'generated/prisma/client';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly mediaService: MediaService,
+  ) {}
 
   // Endpoints business logic
   public async findById(id: string): Promise<SafeUserData> {
@@ -15,9 +20,7 @@ export class UserService {
       throw new NotFoundException(`User with ID "${id}" not found`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: passwordHash, ...safeUser } = user;
-    return safeUser;
+    return this.toPublicResponse(user);
   }
 
   public async findByEmail(email: string): Promise<SafeUserData> {
@@ -27,9 +30,7 @@ export class UserService {
       throw new NotFoundException(`User with email "${email}" not found`);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: passwordHash, ...safeUser } = user;
-    return safeUser;
+    return this.toPublicResponse(user);
   }
 
   // External functions
@@ -54,6 +55,25 @@ export class UserService {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password, ...safeUser } = user;
 
-    return safeUser;
+    return this.toResponse(safeUser);
+  }
+
+  public async toPublicResponse(user: User): Promise<SafeUserData> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...withoutPassword } = user;
+    return this.toResponse(withoutPassword);
+  }
+
+  private async toResponse(
+    user: Omit<User, 'password'>,
+  ): Promise<SafeUserData> {
+    const avatarUrl = user.avatarFileId
+      ? await this.mediaService.getFileUrl(user.avatarFileId)
+      : null;
+
+    return {
+      ...user,
+      avatarFileUrl: avatarUrl,
+    };
   }
 }

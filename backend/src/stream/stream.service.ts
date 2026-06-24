@@ -7,11 +7,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { StreamRepository } from './repositories';
-import { CreateStreamDto, UpdateStreamDto } from './dto';
+import { CreateStreamDto, StreamResponse, UpdateStreamDto } from './dto';
 import { Stream } from 'generated/prisma/client';
 import { ClientProxy } from '@nestjs/microservices';
 import { RedisService } from 'src/redis/redis.service';
 import { Cron } from '@nestjs/schedule';
+import { MediaService } from 'src/media/media.service';
 
 @Injectable()
 export class StreamService {
@@ -19,6 +20,7 @@ export class StreamService {
     @Inject('AMQP_SERVICE') private client: ClientProxy,
     private readonly streamRepository: StreamRepository,
     private readonly redis: RedisService,
+    private readonly mediaService: MediaService,
   ) {}
 
   private readonly logger = new Logger(StreamService.name);
@@ -36,22 +38,9 @@ export class StreamService {
   public async createStream(
     dto: CreateStreamDto,
     userId: string,
-  ): Promise<Stream> {
-    this.validateScheduledDate(dto.scheduledAt);
-
-    const activeStream = await this.streamRepository.findActiveByUser(userId);
-
-    if (activeStream.length > 0) {
-      this.logger.error(
-        `У вас уже есть активная трансляция, userId=${userId} streamId=${activeStream[0].id}`,
-      );
-      throw new BadRequestException('You already have an active live stream');
-    }
-
+  ): Promise<StreamResponse> {
     const newStream = await this.streamRepository.create(dto, userId);
-
-    const cacheKey = 'streams:all';
-    await this.redis.del(cacheKey);
+    await this.redis.del('streams:all');
 
     try {
       this.client.emit('stream_started', newStream);
@@ -65,61 +54,54 @@ export class StreamService {
       );
     }
 
-    this.logger.debug(new Date().toISOString());
-
-    return newStream;
+    return this.toResponse(newStream);
   }
 
   public async updateStream(
     dto: UpdateStreamDto,
     streamId: string,
     userId: string,
-  ): Promise<Stream> {
-    if (dto.scheduledAt) {
-      this.validateScheduledDate(dto.scheduledAt);
-    }
+  ): Promise<StreamResponse> {
+    if (dto.scheduledAt) this.validateScheduledDate(dto.scheduledAt);
     await this.getStreamAndValidateOwner(streamId, userId);
 
     const updatedStream = await this.streamRepository.update(dto, streamId);
-
     await this.redis.del(`stream:${updatedStream.id}`);
     await this.redis.del('streams:all');
 
-    return updatedStream;
+    return this.toResponse(updatedStream);
   }
 
-  public async findById(id: string): Promise<Stream | null> {
+  public async findById(id: string): Promise<StreamResponse | null> {
     const cacheKey = `stream:${id}`;
 
     const cachedStream = await this.redis.get(cacheKey);
     if (cachedStream) {
-      return JSON.parse(cachedStream) as Stream;
+      const stream = JSON.parse(cachedStream) as Stream;
+      return this.toResponse(stream);
     }
 
     const stream = await this.streamRepository.findById(id);
+    if (!stream) return null;
 
-    if (stream) {
-      await this.redis.set(cacheKey, JSON.stringify(stream), 'EX', 300);
-    }
-
-    return stream;
+    await this.redis.set(cacheKey, JSON.stringify(stream), 'EX', 300);
+    return this.toResponse(stream);
   }
 
-  public async findAll(): Promise<Stream[]> {
+  public async findAll(): Promise<StreamResponse[]> {
     const cacheKey = 'streams:all';
 
     const cachedStreams = await this.redis.get(cacheKey);
-
     if (cachedStreams) {
       this.logger.log('Данные findAll взяты из Redis кэша');
-      return JSON.parse(cachedStreams) as Stream[];
+      const streams = JSON.parse(cachedStreams) as Stream[];
+      return this.toResponseMany(streams);
     }
 
     const streams = await this.streamRepository.findActiveStreams();
-
     await this.redis.set(cacheKey, JSON.stringify(streams), 'EX', 120);
 
-    return streams;
+    return this.toResponseMany(streams);
   }
 
   public async deleteStream(streamId: string, userId: string): Promise<void> {
@@ -133,8 +115,15 @@ export class StreamService {
     return;
   }
 
-  public async endStream(streamId: string, userId: string): Promise<Stream> {
-    await this.getStreamAndValidateOwner(streamId, userId);
+  public async endStream(
+    streamId: string,
+    userId: string,
+  ): Promise<StreamResponse> {
+    const stream = await this.getStreamAndValidateOwner(streamId, userId);
+
+    if (!stream.isLive) {
+      throw new BadRequestException('Stream is already ended');
+    }
 
     const updatedStream = await this.streamRepository.setLiveStatus(
       false,
@@ -143,8 +132,7 @@ export class StreamService {
 
     await this.redis.del(`stream:${updatedStream.id}`);
     await this.redis.del('streams:all');
-
-    return updatedStream;
+    return this.toResponse(updatedStream);
   }
 
   private async getStreamAndValidateOwner(
@@ -191,5 +179,20 @@ export class StreamService {
       );
       throw new BadRequestException('Scheduled date must be within one month');
     }
+  }
+
+  private async toResponse(stream: Stream): Promise<StreamResponse> {
+    const thumbnailUrl = stream.thumbnailFileId
+      ? await this.mediaService.getFileUrl(stream.thumbnailFileId)
+      : null;
+
+    return {
+      ...stream,
+      thumbnailUrl,
+    };
+  }
+
+  private async toResponseMany(streams: Stream[]): Promise<StreamResponse[]> {
+    return Promise.all(streams.map((s) => this.toResponse(s)));
   }
 }

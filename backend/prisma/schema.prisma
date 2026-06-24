@@ -8,32 +8,33 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  username  String    @unique
-  streams   Stream[]
-  createdAt DateTime  @default(now())
-  messages  Message[]
-  files     File[]
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String
+  username     String    @unique
+  streams      Stream[]
+  avatarFileId String?
+  createdAt    DateTime  @default(now())
+  messages     Message[]
+  files        File[]
 
   @@map("users")
 }
 
 model Stream {
-  id           String    @id @default(uuid())
-  title        String
-  description  String?
-  isLive       Boolean   @default(false)
-  thumbnailUrl String?
-  userId       String
-  user         User      @relation(fields: [userId], references: [id])
-  createdAt    DateTime  @default(now())
-  scheduledAt  DateTime
-  startedAt    DateTime?
-  messages     Message[]
-  fileId       String?   @unique
-  file         File?     @relation(fields: [fileId], references: [id])
+  id              String    @id @default(uuid())
+  title           String
+  description     String?
+  isLive          Boolean   @default(false)
+  thumbnailFileId String
+  userId          String
+  user            User      @relation(fields: [userId], references: [id])
+  createdAt       DateTime  @default(now())
+  scheduledAt     DateTime
+  startedAt       DateTime?
+  messages        Message[]
+  streamFileId    String?   @unique
+  file            File?     @relation(fields: [streamFileId], references: [id])
 
   @@index([userId])
   @@index([isLive])

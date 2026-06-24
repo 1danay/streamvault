@@ -29,7 +29,7 @@ export class AuthService {
 
     const existingUser = await this.userService.findForAuth(email);
     if (!existingUser) {
-      this.logger.error(`Неверный email или пароль`);
+      this.logger.error('Неверный email или пароль');
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -42,22 +42,13 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    // DEV
-    this.logger.log(`Login successfull. Credentials: ${email}:${password}`);
-
+    const safeUser = await this.userService.toPublicResponse(existingUser);
     const { accessToken, refreshToken } = await this.generateTokens(
-      existingUser,
+      safeUser,
       res,
     );
 
-    return {
-      accessToken,
-      refreshToken,
-      id: existingUser.id,
-      email: existingUser.email,
-      username: existingUser.username,
-      createdAt: existingUser.createdAt,
-    };
+    return { accessToken, refreshToken, ...safeUser };
   }
 
   public async register(dto: AuthDto, res: Response): Promise<AuthResponse> {
@@ -70,13 +61,11 @@ export class AuthService {
 
     const existingUser = await this.userService.findForAuth(email);
     if (existingUser) {
-      this.logger.error(
-        `Пользователь с таким адресом электронной почты уже существует: ${email}`,
-      );
+      this.logger.error(`Пользователь с таким email уже существует: ${email}`);
       throw new ConflictException('User with this email already exists');
     }
 
-    let newUser: SafeUserData | null;
+    let newUser: SafeUserData;
 
     try {
       newUser = await this.userService.createUser({
@@ -86,7 +75,6 @@ export class AuthService {
       });
     } catch (e) {
       if (
-        // Unique constraint error
         e instanceof Prisma.PrismaClientKnownRequestError &&
         e.code === 'P2002'
       ) {
@@ -103,14 +91,7 @@ export class AuthService {
       res,
     );
 
-    return {
-      accessToken,
-      refreshToken,
-      id: newUser.id,
-      email: newUser.email,
-      username: newUser.username,
-      createdAt: newUser.createdAt,
-    };
+    return { accessToken, refreshToken, ...newUser };
   }
 
   private async generateTokens(user: SafeUserData, res: Response) {

@@ -13,7 +13,7 @@ export class StreamRepository implements IStreamRepository {
       data: {
         title: dto.title,
         description: dto.description,
-        thumbnailUrl: dto.thumbnailUrl,
+        thumbnailFileId: dto.thumbnailFileId,
         userId,
         scheduledAt: dto.scheduledAt,
       },
@@ -26,7 +26,7 @@ export class StreamRepository implements IStreamRepository {
       data: {
         title: dto.title,
         description: dto.description,
-        thumbnailUrl: dto.thumbnailUrl,
+        thumbnailFileId: dto.thumbnailFileId,
         scheduledAt: dto.scheduledAt,
       },
     });
