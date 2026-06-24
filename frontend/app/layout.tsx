@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import Link from "next/link";
+import Image from "next/image";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,11 +25,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-neutral-900 text-neutral-100">
+        <header className="border-b border-neutral-800 px-6 py-4 flex items-center justify-between">
+          <Link href="/" className="text-lg font-semibold tracking-tight text-white flex gap-0.5 items-center">
+            <Image src="/logo.png" alt="logo" width={40} height={40} />
+            StreamVault
+          </Link>
+          <nav className="flex items-center gap-4 text-sm text-neutral-400">
+            <a href="/login" className="hover:text-white transition-colors">
+              Войти
+            </a>
+            <a href="/register" className="bg-white text-black px-3 py-1.5 rounded-md font-medium hover:bg-neutral-200 transition-colors">
+              Регистрация
+            </a>
+          </nav>
+        </header>
+        <main className="flex-1">{children}</main>
+      </body>
     </html>
   );
 }
