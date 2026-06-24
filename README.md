@@ -28,6 +28,7 @@ streamvault/
 │   ├── prisma/   # Схемы базы данных
 │   ├── src/
 │   │   ├── auth/     # JWT авторизации
+│   │   ├── media/    # Обработка медиафайлов
 │   │   ├── message/  # WebSocket чат
 │   │   ├── prisma/   # Модуль конфигурации PrismaORM
 │   │   ├── redis/    # Модуль конфигурации Redis
