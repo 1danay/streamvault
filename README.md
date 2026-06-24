@@ -2,11 +2,16 @@
 
 # StreamVault
 
+<p align="center">
+  <img width="85" height="85" alt="stream_vault_logo" src="https://github.com/user-attachments/assets/79209aa2-05f2-4892-925a-f9071c3d60ed" />
+</p>
+
 Платформа для видеопремьер с живым чатом. Авторы загружают видео и назначают дату выхода - в назначенное время начинается премьера, становится доступным чат и живой счетчик зрителей премьеры.
 
 ## Стек
 
-**Backend:** NestJS · TypeScript · PostgreSQL · PrismaORM · Redis · RabbitMQ · Socket.io · AWS S3 · JWT · Swagger(OpenAPI) · Docker
+**Backend:** NestJS · TypeScript · PostgreSQL · PrismaORM · Redis · RabbitMQ · Sock
+et.io · AWS S3 · JWT · Swagger(OpenAPI) · Docker
 
 **Frontend:** Next.js · TypeScript · React · TailwindCSS
 
