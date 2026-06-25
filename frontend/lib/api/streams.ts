@@ -1,9 +1,9 @@
-import { Stream } from "@/types/stream";
+import { FindAllStreamsResponse } from "@/types/stream";
 import { apiClient } from "./api-client";
 
-export async function getStreams(): Promise<Stream[]> {
+export async function getStreams(): Promise<FindAllStreamsResponse> {
   try {
-    const response = await apiClient.get<Stream[]>("/stream");
+    const response = await apiClient.get<FindAllStreamsResponse>("/stream");
 
     return response.data;
   } catch (err) {

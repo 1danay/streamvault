@@ -10,3 +10,8 @@ export interface Stream {
   startedAt: Date | null;
   fileId: string | null;
 }
+
+export interface FindAllStreamsResponse {
+  active: Stream[];
+  upcoming: Stream[];
+}
