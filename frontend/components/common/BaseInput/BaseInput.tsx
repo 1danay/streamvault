@@ -10,7 +10,7 @@ interface InputProps {
 const BaseInput = ({ label, type = "text", value, onChange, placeholder, required = true }: InputProps) => {
   return (
     <div className="mb-4 flex flex-col">
-      {label && <label className="mb-1 text-sm font-semibold text-gray-700">{label}</label>}
+      {label && <label className="mb-1 text-sm font-semibold">{label}</label>}
       <input
         type={type}
         value={value}

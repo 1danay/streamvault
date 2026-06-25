@@ -1,13 +1,17 @@
 "use client";
 
+import AuthForm from "@/components/common/AuthForm/AuthForm";
+import AuthFormSchema from "@/schemas/auth";
 import { useState } from "react";
+import z from "zod";
 
 const LoginPage = () => {
-  const [email, setEmail] = useState("");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  function onSubmit(data: z.infer<typeof AuthFormSchema>) {
+    // Do something with the form values.
+    console.log(data);
+  }
 
-  return <div>LoginPage</div>;
+  return <AuthForm mode={"register"} onSubmit={onSubmit} />;
 };
 
 export default LoginPage;
