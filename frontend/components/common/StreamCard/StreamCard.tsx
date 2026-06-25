@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/Card";
+import { Card, CardContent } from "@/components/ui/Card";
 import { Stream } from "@/types/stream";
 import Image from "next/image";
 import Link from "next/link";
@@ -25,6 +25,12 @@ const StreamCard = ({ stream }: StreamCardProps) => {
             <Image src={stream.thumbnailUrl} alt={stream.title} fill className="object-cover" sizes="max-w-70 100vw" />
           ) : (
             <div className="w-full h-full bg-neutral-700 animate-pulse" />
+          )}
+
+          {stream.isLive ? (
+            <span className="absolute bottom-2 right-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded">В ЭФИРЕ</span>
+          ) : (
+            <span className="absolute bottom-2 right-2 bg-neutral-600 text-white text-xs font-bold px-2 py-0.5 rounded"> {formattedDate}</span>
           )}
         </div>
 
