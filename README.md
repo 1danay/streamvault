@@ -126,5 +126,4 @@ AWS_ENDPOINT="your_storage_endpoint"
 ## Roadmap
 
 - [ ] Frontend (Next.js)
-- [ ] Модуль уведомлений (RabbitMQ consumer)
 - [ ] Профиль пользователя
