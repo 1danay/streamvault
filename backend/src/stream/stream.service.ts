@@ -47,6 +47,8 @@ export class StreamService {
     const newStream = await this.streamRepository.create(dto, userId);
     await this.redis.del('streams:all');
 
+    const response = await this.toResponse(newStream);
+
     try {
       this.client.emit('stream_started', newStream);
 
@@ -59,7 +61,7 @@ export class StreamService {
       );
     }
 
-    return this.toResponse(newStream);
+    return response;
   }
 
   public async updateStream(
@@ -74,7 +76,7 @@ export class StreamService {
     await this.redis.del(`stream:${updatedStream.id}`);
     await this.redis.del('streams:all');
 
-    return this.toResponse(updatedStream);
+    return await this.toResponse(updatedStream);
   }
 
   public async findById(id: string): Promise<StreamResponse | null> {
@@ -90,7 +92,7 @@ export class StreamService {
     if (!stream) return null;
 
     await this.redis.set(cacheKey, JSON.stringify(stream), 'EX', 300);
-    return this.toResponse(stream);
+    return await this.toResponse(stream);
   }
 
   public async findAll(): Promise<FildAllStreamsResponse> {
@@ -148,7 +150,7 @@ export class StreamService {
 
     await this.redis.del(`stream:${updatedStream.id}`);
     await this.redis.del('streams:all');
-    return this.toResponse(updatedStream);
+    return await this.toResponse(updatedStream);
   }
 
   private async getStreamAndValidateOwner(
