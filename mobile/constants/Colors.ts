@@ -7,7 +7,9 @@ export const DarkThemeUi = {
     background: "#171717",
     card: "#171717",
     text: "#ffffff",
-    primary: "#f4511e",
+    secondaryText: "#9CA3AF",
+    primary: "#227D57",
+    tint: "#29BE7D",
   },
 };
 
@@ -18,6 +20,8 @@ export const LightThemeUi = {
     background: "#ffffff",
     card: "#f0f0f0",
     text: "#171717",
-    primary: "#f4511e",
+    secondaryText: "#6B7280",
+    primary: "#227D57",
+    tint: "#29BE7D",
   },
 };

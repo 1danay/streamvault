@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { StatusBar, useColorScheme } from "react-native";
+import { StatusBar, useColorScheme, View } from "react-native";
 import { DarkThemeUi, LightThemeUi } from "@/constants/Colors";
 import { ThemeProvider } from "@react-navigation/native";
 import { useEffect } from "react";
@@ -24,9 +24,11 @@ const RootLayout = observer(() => {
       });
   }, [loadTokens]);
 
-  if (authStore.isLoading) {
-    return null;
-  }
+  useEffect(() => {
+    if (!authStore.isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [authStore.isLoading]);
 
   const currentTheme = colorScheme === "dark" ? DarkThemeUi : LightThemeUi;
 
@@ -36,7 +38,12 @@ const RootLayout = observer(() => {
     <ThemeProvider value={currentTheme}>
       <StatusBar backgroundColor="#171717" />
 
-      <Stack screenOptions={{ headerShown: false }} />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: currentTheme.colors.background },
+        }}
+      />
     </ThemeProvider>
   );
 });
