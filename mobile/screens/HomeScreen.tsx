@@ -1,16 +1,16 @@
+import ScreenWrapper from "@/components/ui/ScreenWrapperUi";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function HomePage() {
   return (
-    <View
+    <ScreenWrapper
       style={{
-        flex: 1,
         justifyContent: "center",
         alignItems: "center",
       }}
     >
       <Text>StreamVault</Text>
-    </View>
+    </ScreenWrapper>
   );
 }
 

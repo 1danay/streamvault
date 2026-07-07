@@ -1,17 +1,27 @@
-import { View, Text } from "react-native";
-import React from "react";
-import MainText from "../TextUi/MainText";
-import SecondaryText from "../TextUi/SecondaryText";
+import React, { useState } from "react";
 import { InputUi } from "../InputUi/InputUi";
 
 export default function AuthForm() {
+  const [username, setUsername] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+
   return (
-    <View>
-      <InputUi />
+    <>
+      <InputUi
+        value={username}
+        onChangeText={(u) => setUsername(u)}
+        label="Имя"
+      />
 
-      <InputUi />
+      <InputUi value={email} onChangeText={(e) => setEmail(e)} label="Email" />
 
-      <InputUi />
-    </View>
+      <InputUi
+        value={password}
+        onChangeText={(p) => setPassword(p)}
+        secureTextEntry
+        label="Пароль"
+      />
+    </>
   );
 }
