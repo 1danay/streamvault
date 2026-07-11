@@ -95,6 +95,11 @@ export class StreamService {
     return await this.toResponse(stream);
   }
 
+  public async findStreamsByUser(userId: string): Promise<StreamResponse[]> {
+    const streams = await this.streamRepository.findByUser(userId);
+    return this.toResponseMany(streams);
+  }
+
   public async findAll(): Promise<FildAllStreamsResponse> {
     const cacheKey = 'streams:all';
 

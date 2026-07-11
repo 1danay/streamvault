@@ -1,12 +1,19 @@
-import { Controller, Get, HttpCode, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, Query, Patch, Body } from '@nestjs/common';
 import { UserService } from './user.service';
-import { FindUserByEmailDto, FindUserByIdDto, SafeUserData } from './dto';
+import {
+  FindUserByEmailDto,
+  FindUserByIdDto,
+  SafeUserData,
+  UpdateProfileDto,
+  UserProfileResponse,
+} from './dto';
 import {
   ApiBearerAuth,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
+import { CurrentUser } from 'src/shared/decorators';
 
 @ApiBearerAuth()
 @ApiTags('user')
@@ -28,5 +35,24 @@ export class UserController {
   @HttpCode(200)
   async getByEmail(@Query() dto: FindUserByEmailDto) {
     return await this.userService.findByEmail(dto.email);
+  }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, type: UserProfileResponse })
+  @HttpCode(200)
+  async getProfile(@CurrentUser('id') userId: string) {
+    return await this.userService.getProfile(userId);
+  }
+
+  @Patch('me')
+  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiResponse({ status: 200, type: UserProfileResponse })
+  @HttpCode(200)
+  async updateProfile(
+    @CurrentUser('id') userId: string,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return await this.userService.updateProfile(userId, dto);
   }
 }

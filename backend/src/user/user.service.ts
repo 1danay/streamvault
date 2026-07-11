@@ -1,15 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateUserData, UsersRepository } from './repositories';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { CreateUserData, UpdateProfileData, UsersRepository } from './repositories';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto, SafeUserData } from './dto';
+import { CreateUserDto, SafeUserData, UpdateProfileDto, UserProfileResponse } from './dto';
 import { MediaService } from 'src/media/media.service';
-import { User } from 'generated/prisma/client';
+import { User, Prisma } from 'generated/prisma/client';
+import { StreamService } from 'src/stream/stream.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly mediaService: MediaService,
+    private readonly streamService: StreamService,
   ) {}
 
   // Endpoints business logic
@@ -31,6 +37,66 @@ export class UserService {
     }
 
     return this.toPublicResponse(user);
+  }
+
+  public async getProfile(userId: string): Promise<UserProfileResponse> {
+    const user = await this.usersRepository.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    const [profile, streams] = await Promise.all([
+      this.toPublicResponse(user),
+      this.streamService.findStreamsByUser(userId),
+    ]);
+
+    return {
+      ...profile,
+      streams,
+    };
+  }
+
+  public async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+  ): Promise<UserProfileResponse> {
+    const user = await this.usersRepository.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException(`User with ID "${userId}" not found`);
+    }
+
+    if (dto.avatarFileId) {
+      await this.mediaService.validateOwnedCompletedFile(
+        dto.avatarFileId,
+        userId,
+      );
+    }
+
+    const updateData: UpdateProfileData = {};
+
+    if (dto.username !== undefined) {
+      updateData.username = dto.username;
+    }
+
+    if (dto.avatarFileId !== undefined) {
+      updateData.avatarFileId = dto.avatarFileId;
+    }
+
+    try {
+      const updatedUser = await this.usersRepository.update(userId, updateData);
+
+      return this.getProfile(updatedUser.id);
+    } catch (e) {
+      if (
+        e instanceof Prisma.PrismaClientKnownRequestError &&
+        e.code === 'P2002'
+      ) {
+        throw new ConflictException('User with this username already exists');
+      }
+      throw e;
+    }
   }
 
   // External functions

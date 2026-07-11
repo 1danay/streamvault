@@ -187,6 +187,30 @@ export class MediaService {
     return file;
   }
 
+  public async validateOwnedCompletedFile(
+    fileId: string,
+    userId: string,
+  ): Promise<File> {
+    const file = await this.mediaRepository.findById(fileId);
+
+    if (!file) {
+      this.logger.error('Файл не найден');
+      throw new NotFoundException('File not found');
+    }
+
+    if (file.uploaderId !== userId) {
+      this.logger.error('Недостаточно прав для управления файлом');
+      throw new ForbiddenException('Not your upload');
+    }
+
+    if (file.status !== FileStatus.COMPLETED) {
+      this.logger.error('Загрузка файла не завершена');
+      throw new BadRequestException('File upload is not completed');
+    }
+
+    return file;
+  }
+
   private generateFileKey(filename: string, fileId: string): string {
     return `uploads/${fileId}/${filename}`;
   }

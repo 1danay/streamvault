@@ -93,6 +93,13 @@ export class StreamRepository implements IStreamRepository {
     });
   }
 
+  public async findByUser(userId: string): Promise<Stream[]> {
+    return await this.prisma.stream.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   public async findById(id: string): Promise<Stream | null> {
     return await this.prisma.stream.findUnique({
       where: {

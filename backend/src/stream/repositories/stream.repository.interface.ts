@@ -8,6 +8,7 @@ export interface IStreamRepository {
   findActiveStreams(): Promise<Stream[]>;
   startLiveStreams(): Promise<Stream[]>;
   findActiveByUser(userId: string): Promise<Stream[]>;
+  findByUser(userId: string): Promise<Stream[]>;
   findById(id: string): Promise<Stream | null>;
   delete(id: string): Promise<Stream>;
 }

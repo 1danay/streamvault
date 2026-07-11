@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserData, IUsersRepository } from './user.repository.interface';
+import {
+  CreateUserData,
+  IUsersRepository,
+  UpdateProfileData,
+} from './user.repository.interface';
 import { User } from 'generated/prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -30,6 +34,13 @@ export class UsersRepository implements IUsersRepository {
       where: {
         email,
       },
+    });
+  }
+
+  public async update(id: string, data: UpdateProfileData): Promise<User> {
+    return await this.prisma.user.update({
+      where: { id },
+      data,
     });
   }
 }

@@ -19,7 +19,14 @@ export class InitFileUploadData {
   @ApiProperty({ example: 'video/mp4', description: 'MIME-type of file' })
   @IsString()
   @IsMimeType()
-  @IsIn(['video/mp4', 'video/webm', 'video/quicktime'])
+  @IsIn([
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ])
   public contentType: string;
 
   @ApiProperty({ example: ONE_MB_IN_BYTES, description: 'File size in bytes' })

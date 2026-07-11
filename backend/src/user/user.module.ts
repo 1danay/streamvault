@@ -3,9 +3,10 @@ import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { UsersRepository } from './repositories';
 import { MediaModule } from 'src/media/media.module';
+import { StreamModule } from 'src/stream/stream.module';
 
 @Module({
-  imports: [MediaModule],
+  imports: [MediaModule, StreamModule],
   controllers: [UserController],
   providers: [UserService, UsersRepository],
   exports: [UserService],
