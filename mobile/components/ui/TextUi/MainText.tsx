@@ -9,10 +9,7 @@ export default function MainText({ style, children, px = 48 }: TextUiProps) {
   return (
     <View>
       <Text
-        style={[
-          { color: colors.text, fontWeight: "bold", fontSize: px },
-          style,
-        ]}
+        style={[{ color: colors.text, fontWeight: 600, fontSize: px }, style]}
       >
         {children}
       </Text>

@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 import { InputUi } from "../InputUi/InputUi";
+import { ButtonUi } from "../ButtonUi/ButtonUi";
 
-export default function AuthForm() {
+export default function AuthForm({ mode }: { mode: "register" | "login" }) {
   const [username, setUsername] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
+  const onButtonPress = () => {};
 
   return (
     <>
@@ -22,6 +25,10 @@ export default function AuthForm() {
         secureTextEntry
         label="Пароль"
       />
+
+      <ButtonUi onPress={onButtonPress}>
+        {mode === "login" ? "Войти" : "Зарегистрироваться"}
+      </ButtonUi>
     </>
   );
 }
