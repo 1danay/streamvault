@@ -14,6 +14,7 @@ import { RedisModule } from './redis/redis.module.js';
 import { MediaModule } from './media/media.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from './notification/notification.module';
+import { FollowModule } from './follow/follow.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { NotificationModule } from './notification/notification.module';
     MediaModule,
     ScheduleModule.forRoot(),
     NotificationModule,
+    FollowModule,
   ],
   providers: [
     {
