@@ -1,9 +1,9 @@
 import { View, StyleSheet } from "react-native";
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import AuthForm from "@/components/ui/AuthForm/AuthForm";
 import MainText from "@/components/ui/TextUi/MainText";
 import SecondaryText from "@/components/ui/TextUi/SecondaryText";
+import { AuthForm } from "@/components/ui/AuthForm";
 
 export default function LoginScreen() {
   return (

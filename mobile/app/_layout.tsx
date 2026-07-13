@@ -6,6 +6,7 @@ import { ThemeProvider } from "@react-navigation/native";
 import { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { authStore } from "@/stores/auth";
+import Toast from "react-native-toast-message";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -44,6 +45,8 @@ const RootLayout = observer(() => {
           contentStyle: { backgroundColor: currentTheme.colors.background },
         }}
       />
+
+      <Toast />
     </ThemeProvider>
   );
 });

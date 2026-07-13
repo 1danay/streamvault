@@ -3,7 +3,7 @@ import React from "react";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { TextUiProps } from "./types";
 
-export default function MainText({ style, children, px = 48 }: TextUiProps) {
+export default function MainText({ style, children, px = 40 }: TextUiProps) {
   const { colors } = useAppTheme();
 
   return (
